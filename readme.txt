@@ -1,4 +1,4 @@
-=== User Specific Content ===
+Ôªø=== User Specific Content ===
 Contributors: bainternet,adsbycb 
 Donate link:http://en.bainternet.info/donations
 Tags: User content, user specific content,content by role, content by user
@@ -12,7 +12,7 @@ This Plugin allows you to select specific users by user name, or by role name wh
 
 This Plugin allows you to select specific users by user name, or by role name who can view a specific post content or page content.
 
-Basically it adds a meta box to the post or page edit screen and lets the user select specific users by name or roles and then when you call that page content using ìthe\_content();î function it check using ìthe\_contentî filter if the current user is one of the users you have selected or if his role matchís the roles you have selected and shows the content, otherwise it displays a message
+Basically it adds a meta box to the post or page edit screen and lets the user select specific users by name or roles and then when you call that page content using ‚Äúthe\_content();‚Äù function it check using ‚Äúthe\_content‚Äù filter if the current user is one of the users you have selected or if his role match‚Äôs the roles you have selected and shows the content, otherwise it displays a message
 
 **Features:**
 
