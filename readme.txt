@@ -4,7 +4,7 @@ Donate link:http://en.bainternet.info/donations
 Tags: User content, user specific content,content by role, content by user
 Requires at least: 2.9.2
 Tested up to: 3.1.1
-Stable tag: 0.1
+Stable tag: 0.2
 
 This Plugin allows you to select specific users by user name, or by role name who can view a specific post content or page content.
 
@@ -40,4 +40,5 @@ Simply use the <a href=\"http://wordpress.org/tags/user-specific-content?forum_i
 1. User Specific Content metabox
 
 == Changelog ==
+0.2 added pages support
 0.1 initial release

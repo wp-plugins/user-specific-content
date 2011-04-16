@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.1
+Version: 0.2
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -14,7 +14,7 @@ add_action('add_meta_boxes', 'User_specific_content_box');
 /* Adds a box to the main column on the custom post type edit screens */
 function User_specific_content_box() {
     add_meta_box('User_specific_content', __( 'User specific content box'),'User_specific_content_box_inner','post');
-	add_meta_box('User_specific_content', __( 'User specific content box'),'User_specific_content_box_inner','post');
+	add_meta_box('User_specific_content', __( 'User specific content box'),'User_specific_content_box_inner','page');
 }
 
 /* Prints the box content */
