@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.3
+Version: 0.4
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -56,6 +56,14 @@ function User_specific_content_box_inner() {
 		}
     }
 	//other_options
+	//logeed-in only
+	echo '<h4>'.__('logged in users only:').'</h4>';
+	echo '<input type="checkbox" name="U_S_C_options[logged]" value="1"';
+	if (isset($savedoptions['logged']) && $savedoptions['logged'] == 1){
+		echo ' checked'; 
+	}
+	echo '>If this box is check then content will show only to logged-in users and everyone else will get the blocked massage';
+	//none logged-in
 	echo '<h4>'.__('None logged in users only:').'</h4>';
 	echo '<input type="checkbox" name="U_S_C_options[non_logged]" value="1"';
 	if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
@@ -90,9 +98,9 @@ function User_specific_content_box_inner_save( $post_id ) {
 	
 	if (isset($_POST['U_S_C_options']) && !empty($_POST['U_S_C_options'] )){
 		foreach ($_POST['U_S_C_options'] as $key => $value ){
-			$savedoptions[$key] = $value;
+			$new_savedoptions[$key] = $value;
 		}
-		update_post_meta($post_id, 'U_S_C_options', $savedoptions);
+		update_post_meta($post_id, 'U_S_C_options', $new_savedoptions);
 	}else{
 		 delete_post_meta($post_id, 'U_S_C_options');
 	}
@@ -130,17 +138,38 @@ function User_specific_content_filter($content){
 		if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
 			if (is_user_logged_in()){
 				return get_post_meta($post->ID, 'U_S_C_message',true);
+				exit;
+			}
+		}
+		//logged in users only
+		if (isset($savedoptions['logged']) && $savedoptions['logged'] == 1){
+			if (!is_user_logged_in()){
+				return get_post_meta($post->ID, 'U_S_C_message',true);
+				exit;
 			}
 		}
 	}
 	$savedroles = get_post_meta($post->ID, 'U_S_C_roles',true);
 	$run_check = 0;
 	$savedusers = get_post_meta($post->ID, 'U_S_C_users',true);
-	if (!count($savedusers) > 0 && !count($savedroles) > 0 )
+	if (!count($savedusers) > 0 && !count($savedroles) > 0 ){
 		return $content;
-		
+		exit;
+	}
+	//by role
 	if (isset($savedroles) && !empty($savedroles)){
-		foreach ($savedroles as $role){
+		get_currentuserinfo();
+		$cu_r = bausp_get_current_user_role();
+		if ($cu_r){
+			if (in_array($cu_r,$savedroles)){
+				return $content;
+				exit;
+			}
+		}else{
+			//failed role check
+		$run_check = 1;
+		}
+		/*foreach ($savedroles as $role){
 			if (current_user_can($role)) {
 				return $content;
 				exit;
@@ -148,15 +177,36 @@ function User_specific_content_filter($content){
 		}
 		//failed role check
 		$run_check = 1;
+		*/
 	}
+	
+	//by user
 	if (isset($savedusers) && !empty($savedusers)){
 		get_currentuserinfo();
 		if (in_array($current_user->ID,$savedusers)){
 			return $content;
 		}
+		else{
+			$run_check = $run_check + 1;
+		}
 			//failed both checks
 		return get_post_meta($post->ID, 'U_S_C_message',true);
 	}
+	if ($run_check > 0){
+		return get_post_meta($post->ID, 'U_S_C_message',true);
+	}
 	return $content;
+}
+
+/************************
+* helpers
+************************/
+
+function bausp_get_current_user_role() {
+	global $wp_roles;
+	$current_user = wp_get_current_user();
+	$roles = $current_user->roles;
+	$role = array_shift($roles);
+	return isset($wp_roles->role_names[$role]) ? translate_user_role($wp_roles->role_names[$role] ) : false;
 }
 ?>
