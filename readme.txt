@@ -4,7 +4,7 @@ Donate link:http://en.bainternet.info/donations
 Tags: User content, user specific content,content by role, content by user
 Requires at least: 2.9.2
 Tested up to: 3.1.1
-Stable tag: 0.2
+Stable tag: 0.3
 
 This Plugin allows you to select specific users by user name, or by role name who can view a specific post content or page content.
 
@@ -18,7 +18,9 @@ Basically it adds a meta box to the post or page edit screen and lets the user s
 
 *   You can select any number of Users you want by there names.
 *   You can select any number of users Roles you want by there names.
-*   Easy Customization of content blocked massage.
+*   Easy Customization of content blocked massage per post, or page.
+*   Works with both posts, and pages.
+*   Content to none logged in users only.
 
 Any feedback or suggestions are welcome.
 
@@ -40,5 +42,8 @@ Simply use the <a href=\"http://wordpress.org/tags/user-specific-content?forum_i
 1. User Specific Content metabox
 
 == Changelog ==
+0.3 added none logged-in user content only!
+
 0.2 added pages support
+
 0.1 initial release

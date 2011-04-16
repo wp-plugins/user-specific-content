@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.2
+Version: 0.3
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -23,9 +23,11 @@ function User_specific_content_box_inner() {
 	$savedroles = get_post_meta($post->ID, 'U_S_C_roles',true);
 	//var_dump($savedroles);
 	$savedusers = get_post_meta($post->ID, 'U_S_C_users',true);
+	$savedoptions = get_post_meta($post->ID, 'U_S_C_options',true);
 	//var_dump($savedusers);
 	// Use nonce for verification
 	wp_nonce_field( plugin_basename(__FILE__), 'User_specific_content_box_inner' );
+	//by role
 	echo __('Select users to show this content to');
 	echo '<h4>'.__('By User Role:').'</h4>';
 	if ( !isset( $wp_roles ) )
@@ -37,6 +39,7 @@ function User_specific_content_box_inner() {
 		}
 		echo '>'.$name.'    ';
 	}
+	//by user
 	echo '<h4>'.__('By User Name:').'</h4>';
 	$blogusers = get_users('blog_id=1&orderby=nicename');
     $usercount = 0;
@@ -52,6 +55,13 @@ function User_specific_content_box_inner() {
 			$usercount = 0;
 		}
     }
+	//other_options
+	echo '<h4>'.__('None logged in users only:').'</h4>';
+	echo '<input type="checkbox" name="U_S_C_options[non_logged]" value="1"';
+	if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
+		echo ' checked'; 
+	}
+	echo '>If this box is check then content will show only to none logged-in visitors and everyone else will get the blocked massage';
 	echo '<h4>'.__('Content Blocked message:').'</h4>';
 	echo '<textarea rows="3" cols="70" name="U_S_C_message" id="U_S_C_message">'.get_post_meta($post->ID, 'U_S_C_message',true).'</textarea><br/>'.__('This message will be shown to anyone who is not on the list above.');
 }
@@ -76,6 +86,16 @@ function User_specific_content_box_inner_save( $post_id ) {
 	  // OK, we're authenticated: we need to find and save the data
 	$savedroles = get_post_meta($post_id, 'U_S_C_roles',true);
 	$savedusers = get_post_meta($post_id, 'U_S_C_users',true);
+	$savedoptions = get_post_meta($post->ID, 'U_S_C_options',true);
+	
+	if (isset($_POST['U_S_C_options']) && !empty($_POST['U_S_C_options'] )){
+		foreach ($_POST['U_S_C_options'] as $key => $value ){
+			$savedoptions[$key] = $value;
+		}
+		update_post_meta($post_id, 'U_S_C_options', $savedoptions);
+	}else{
+		 delete_post_meta($post_id, 'U_S_C_options');
+	}
 	if (isset($_POST['U_S_C_roles']) && !empty($_POST['U_S_C_roles'] )){
 		foreach ($_POST['U_S_C_roles'] as $role){
 			$new_roles[] = $role;
@@ -104,7 +124,15 @@ function User_specific_content_box_inner_save( $post_id ) {
 add_filter('the_content','User_specific_content_filter');
 function User_specific_content_filter($content){
 	global $post,$current_user;
-	
+	$savedoptions = get_post_meta($post->ID, 'U_S_C_options',true);
+	if (isset($savedoptions) && !empty($savedoptions)){
+		// none logged only
+		if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
+			if (is_user_logged_in()){
+				return get_post_meta($post->ID, 'U_S_C_message',true);
+			}
+		}
+	}
 	$savedroles = get_post_meta($post->ID, 'U_S_C_roles',true);
 	$run_check = 0;
 	$savedusers = get_post_meta($post->ID, 'U_S_C_users',true);
