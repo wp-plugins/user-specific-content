@@ -42,8 +42,7 @@ Simply use the <a href=\"http://wordpress.org/tags/user-specific-content?forum_i
 1. User Specific Content metabox
 
 == Changelog ==
-0.4 
-added simply logged-in user content only!
+0.4 added simply logged-in user content only!
 quick fixed block by role bug.
 
 0.3 
