@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.4
+Version: 0.5
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -32,29 +32,47 @@ function User_specific_content_box_inner() {
 	echo '<h4>'.__('By User Role:').'</h4>';
 	if ( !isset( $wp_roles ) )
 		$wp_roles = new WP_Roles();
-	foreach ( $wp_roles->role_names as $role => $name ) {
-		echo '<input type="checkbox" name="U_S_C_roles[]" value="'.$name.'"';
-		if (in_array($name,$savedroles)){
-			echo ' checked';
+	if (!empty($savedroles)){
+		foreach ( $wp_roles->role_names as $role => $name ) {
+			echo '<input type="checkbox" name="U_S_C_roles[]" value="'.$name.'"';
+			if (in_array($name,$savedroles)){
+				echo ' checked';
+			}
+			echo '>'.$name.'    ';
 		}
-		echo '>'.$name.'    ';
+	}else{
+		foreach ( $wp_roles->role_names as $role => $name ) {
+			echo '<input type="checkbox" name="U_S_C_roles[]" value="'.$name.'">'.$name.'    ';
+		}
 	}
 	//by user
 	echo '<h4>'.__('By User Name:').'</h4>';
 	$blogusers = get_users('blog_id=1&orderby=nicename');
     $usercount = 0;
-	foreach ($blogusers as $user) {
-		echo '<input type="checkbox" name="U_S_C_users[]" value="'.$user->ID.'"';
-		if (in_array($user->ID,$savedusers)){
-			echo ' checked';
+	if (!empty($savedusers)){
+		foreach ($blogusers as $user) {
+			echo '<input type="checkbox" name="U_S_C_users[]" value="'.$user->ID.'"';
+			if (in_array($user->ID,$savedusers)){
+				echo ' checked';
+			}
+			echo '>'.$user->display_name.'    ';
+			$usercount = $usercount + 1;
+			if ($usercount > 5){
+				echo '<br/>';
+				$usercount = 0;
+			}
 		}
-		echo '>'.$user->display_name.'    ';
-		$usercount = $usercount + 1;
-		if ($usercount > 5){
-			echo '<br/>';
-			$usercount = 0;
+	}else{
+		foreach ($blogusers as $user) {
+			echo '<input type="checkbox" name="U_S_C_users[]" value="'.$user->ID.'">'.$user->display_name.'    ';
+			$usercount = $usercount + 1;
+			if ($usercount > 5){
+				echo '<br/>';
+				$usercount = 0;
+			}
 		}
-    }
+	}
+	
 	//other_options
 	//logeed-in only
 	echo '<h4>'.__('logged in users only:').'</h4>';
