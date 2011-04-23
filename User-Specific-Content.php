@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.5
+Version: 0.6
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -101,10 +101,12 @@ function User_specific_content_box_inner_save( $post_id ) {
 	global $post;
 	  // verify this came from the our screen and with proper authorization,
 	  // because save_post can be triggered at other times
-
-	  if ( !wp_verify_nonce( $_POST['User_specific_content_box_inner'], plugin_basename(__FILE__) ) )
-		  return $post_id;
-
+	if (isset($_POST['User_specific_content_box_inner'])){
+		if ( !wp_verify_nonce( $_POST['User_specific_content_box_inner'], plugin_basename(__FILE__) ) )
+			return $post_id;
+	}else{
+		return $post_id;
+	}
 	  // verify if this is an auto save routine. 
 	  // If it is our form has not been submitted, so we dont want to do anything
 	  if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) 
