@@ -4,7 +4,7 @@ Donate link:http://en.bainternet.info/donations
 Tags: User content, user specific content,content by role, content by user
 Requires at least: 2.9.2
 Tested up to: 3.1.3
-Stable tag: 0.8
+Stable tag: 0.8.1
 
 This Plugin allows you to select specific users by user name, or by role name who can view a specific post content or page content.
 
