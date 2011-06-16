@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.7
+Version: 0.8
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -16,27 +16,35 @@ class bainternet_U_S_C {
 		add_action('save_post', array($this,'User_specific_content_box_inner_save'));
 		/* add shortcodes */
 		add_shortcode('O_U',array($this,'User_specific_content_shortcode'));
-		//options page
+		/* options page */
 		add_action('admin_menu', array($this,'admin_menu'));
-        add_action('admin_init',  array($this, 'U_S_C_init'));
+        add_action('admin_init',  array($this, 'U_S_C_admin_init'));
+		/* add_filter hooks */
+		add_action('init',  array($this, 'U_S_C_init'));
 		
     }
 	
 	//init
 	public function U_S_C_init(){
-		register_setting( 'U_S_C_Options', 'U_S_C',array($this,'U_S_C_validate_options'));
-		$this->U_S_C_get_option();
 		$options = $this->U_S_C_get_option();
 		if ($options['run_on_the_content']){
 			/* hook the_content to filter users */
+			echo 'here';
 			add_filter('the_content',array($this,'User_specific_content_filter'));
 		}
 		if ($options['run_on_the_excerpt']){
+			echo 'here';
 			/* hook the_excerpt to filter users */
 			add_filter('the_excerpt',array($this,'User_specific_content_filter'));
 		}
 	}
 	
+	
+	//admin init
+	public function U_S_C_admin_init(){
+		register_setting( 'U_S_C_Options', 'U_S_C',array($this,'U_S_C_validate_options'));
+		$this->U_S_C_get_option();
+	}
 	
 	function U_S_C_validate_options($i){
 		return $i;
