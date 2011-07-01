@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.8.2
+Version: 0.9.0
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -473,7 +473,7 @@ class bainternet_U_S_C {
 				}
 			}
 		}
-		return $content;
+		return do_shortcode($content);
 	}//end function
 	
 	
