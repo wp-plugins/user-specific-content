@@ -3,10 +3,34 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.9.0
+Version: 0.9.1
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
+/*
+		* 	Copyright (C) 2011  Ohad Raz
+		*	http://en.bainternet.info
+		*	admin@bainternet.info
+
+		This program is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 2 of the License, or
+		(at your option) any later version.
+
+		This program is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
+
+		You should have received a copy of the GNU General Public License
+		along with this program; if not, write to the Free Software
+		Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+/* Disallow direct access to the plugin file */
+if (basename($_SERVER['PHP_SELF']) == basename (__FILE__)) {
+	die('Sorry, but you cannot access this page directly.');
+}
 
 class bainternet_U_S_C {
     function __construct() {
@@ -113,10 +137,10 @@ class bainternet_U_S_C {
 			<div>
 				<?php $this->credits(); ?>
 				<?php echo '<h3>New Feature</h3><p>Since version 0.7 you can use a shortcode <pre>[U_O]</pre> which accepts the following parameters: </p><ul>';
-			echo '<li>user_id - specific user ids form more then one seperate by comma</li>
-			<li>user_name - specific user names form more then one seperate by comma</li>
-			<li>user_role - specific user role form more then one seperate by comma</li>
-			<li>blocked_meassage - specific Content Blocked meassage</li></ul><p>eg:</p><pre>[O_U user_role="Administrator" blocked_meassage="admins only!"]admin content goes here[/O_U]</pre>';
+			echo '<li>user_id - specific user ids form more then one separate by comma</li>
+			<li>user_name - specific user names form more then one separate by comma</li>
+			<li>user_role - specific user role form more then one separate by comma</li>
+			<li>blocked_message - specific Content Blocked message</li></ul><p>eg:</p><pre>[O_U user_role="Administrator" blocked_message="admins only!"]admin content goes here[/O_U]</pre>';
 			?>
 			</div>
 			<p class="submit">
@@ -423,8 +447,13 @@ class bainternet_U_S_C {
 	        "user_id" => '',
 			"user_name" => '',
 			"user_role" => '',
-			"blocked_meassage" => ''
+			"blocked_message" => '',
+			"blocked_meassage" => null
 	    ), $atts));
+		 
+		if ($blocked_meassage !== null){
+			$blocked_message = $blocked_meassage;
+		}
 		
 		$options = $this->U_S_C_get_option('U_S_C');
 		global $current_user;
@@ -433,8 +462,8 @@ class bainternet_U_S_C {
 		
 			//check logged in
 			if (!is_user_logged_in()){
-				if (isset($blocked_meassage) && $blocked_meassage != ''){
-					return $blocked_meassage;
+				if (isset($blocked_message) && $blocked_message != ''){
+					return $blocked_message;
 				}else{
 					return $options['b_massage'];
 				}
@@ -443,8 +472,8 @@ class bainternet_U_S_C {
 			if (isset($user_id) && $user_id != '' ){
 				$user_id = explode(",", $user_id);
 				if (!in_array($current_user->ID,$user_id)){
-					if (isset($blocked_meassage) && $blocked_meassage != ''){
-						return $blocked_meassage;
+					if (isset($blocked_message) && $blocked_message != ''){
+						return $blocked_message;
 					}else{
 						return $options['b_massage'];
 					}
@@ -454,8 +483,8 @@ class bainternet_U_S_C {
 			if (isset($user_name) && $user_name != '' ){
 				$user_name = explode(",", $user_name);
 				if (!in_array($current_user->user_login,$user_name)){
-					if (isset($blocked_meassage) && $blocked_meassage != ''){
-						return $blocked_meassage;
+					if (isset($blocked_message) && $blocked_message != ''){
+						return $blocked_message;
 					}else{
 						return $options['b_massage'];
 					}
@@ -465,8 +494,8 @@ class bainternet_U_S_C {
 			if (isset($user_role) && $user_role != '' ){
 				$user_role = explode(",", $user_role);
 				if (!in_array($this->bausp_get_current_user_role(),$user_role)){
-					if (isset($blocked_meassage) && $blocked_meassage != ''){
-						return $blocked_meassage;
+					if (isset($blocked_message) && $blocked_message != ''){
+						return $blocked_message;
 					}else{
 						return $option['b_massage'];
 					}
