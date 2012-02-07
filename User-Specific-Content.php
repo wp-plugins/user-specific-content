@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.9.2
+Version: 0.9.3
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -206,12 +206,6 @@ class bainternet_U_S_C {
 			if (isset($i['b_massage'])){
 				$temp['b_massage'] = $i['b_massage'];
 			}
-			/*foreach($options as $key => $val){
-				if (!empty($options[$key])){
-					unset($temp[$key]);
-					$temp[$key] = $val;
-				}
-			}*/
 		}
 		
 		update_option('U_S_C', $temp);
@@ -381,7 +375,7 @@ class bainternet_U_S_C {
 			// none logged only
 			if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
 				if (is_user_logged_in()){
-					return get_post_meta($post->ID, 'U_S_C_message',true);
+					return apply_filters('user_specific_content_blocked',get_post_meta($post->ID, 'U_S_C_message',true),$post);
 					exit;
 				}
 			}
@@ -411,7 +405,7 @@ class bainternet_U_S_C {
 				}
 			}else{
 				//failed role check
-			$run_check = 1;
+				$run_check = 1;
 			}
 		}
 		
@@ -425,10 +419,10 @@ class bainternet_U_S_C {
 				$run_check = $run_check + 1;
 			}
 				//failed both checks
-			return get_post_meta($post->ID, 'U_S_C_message',true);
+			return apply_filters('user_specific_content_blocked',get_post_meta($post->ID, 'U_S_C_message',true),$post);
 		}
 		if ($run_check > 0){
-			return get_post_meta($post->ID, 'U_S_C_message',true);
+			return apply_filters('user_specific_content_blocked',get_post_meta($post->ID, 'U_S_C_message',true),$post);
 		}
 		return $content;
 	}
@@ -450,7 +444,7 @@ class bainternet_U_S_C {
 					<li> Any feedback or suggestions are welcome at <a href="http://en.bainternet.info/2011/user-specific-content-plugin">plugin homepage</a></li>
 					<li> <a href="http://wordpress.org/tags/user-specific-content?forum_id=10">Support forum</a> for help and bug submittion</li>
 					<li> Also check out <a href="http://en.bainternet.info/category/plugins">my other plugins</a></li>
-					<li> And if you like my work <a style="color: #FF0000;" href="http://en.bainternet.info/donations">make a donation</a> or atleast <a href="http://wordpress.org/extend/plugins/user-specific-content/">rank the plugin</a></li>
+					<li> And if you like my work <span style="color: #FF0000;">make a donation</span> <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PPCPQV8KA3UQA"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"></a>or atleast <a href="http://wordpress.org/extend/plugins/user-specific-content/">rank the plugin</a></li>
 				</ul>';
 	}//end function
 	
@@ -466,7 +460,8 @@ class bainternet_U_S_C {
 			"blocked_message" => '',
 			"blocked_meassage" => null
 	    ), $atts));
-		 
+		
+		global $post;
 		if ($blocked_meassage !== null){
 			$blocked_message = $blocked_meassage;
 		}
@@ -479,9 +474,9 @@ class bainternet_U_S_C {
 			//check logged in
 			if (!is_user_logged_in()){
 				if (isset($blocked_message) && $blocked_message != ''){
-					return $blocked_message;
+					return apply_filters('user_specific_content_blocked',$blocked_message,$post);
 				}else{
-					return $options['b_massage'];
+					return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
 				}
 			}
 			//check user id
@@ -489,9 +484,9 @@ class bainternet_U_S_C {
 				$user_id = explode(",", $user_id);
 				if (!in_array($current_user->ID,$user_id)){
 					if (isset($blocked_message) && $blocked_message != ''){
-						return $blocked_message;
+						return apply_filters('user_specific_content_blocked',$blocked_message,$post);
 					}else{
-						return $options['b_massage'];
+						return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
 					}
 				}		
 			}
@@ -500,9 +495,9 @@ class bainternet_U_S_C {
 				$user_name = explode(",", $user_name);
 				if (!in_array($current_user->user_login,$user_name)){
 					if (isset($blocked_message) && $blocked_message != ''){
-						return $blocked_message;
+						return apply_filters('user_specific_content_blocked',$blocked_message,$post);
 					}else{
-						return $options['b_massage'];
+						return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
 					}
 				}
 			}
@@ -511,17 +506,15 @@ class bainternet_U_S_C {
 				$user_role = explode(",", $user_role);
 				if (!in_array($this->bausp_get_current_user_role(),$user_role)){
 					if (isset($blocked_message) && $blocked_message != ''){
-						return $blocked_message;
+						return apply_filters('user_specific_content_blocked',$blocked_message,$post);
 					}else{
-						return $option['b_massage'];
+						return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
 					}
 				}
 			}
 		}
-		return do_shortcode($content);
+		return apply_filters('user_spcefic_content_shortcode_filter',do_shortcode($content));
 	}//end function
-	
-	
 }//end class
 
 $U_S_C_i = new bainternet_U_S_C();

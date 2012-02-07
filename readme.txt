@@ -3,8 +3,8 @@ Contributors: bainternet,adsbycb
 Donate link:http://en.bainternet.info/donations
 Tags: User content, user specific content,content by role, content by user
 Requires at least: 2.9.2
-Tested up to: 3.2.1
-Stable tag: 0.9.2
+Tested up to: 3.3.1
+Stable tag: 0.9.3
 
 This Plugin allows you to select specific users by user name, or by role name who can view a specific post content or page content.
 
@@ -89,6 +89,10 @@ YES you can just add your blocked message as a shortcode parameter eg:
 1. User Specific Content metabox
 
 == Changelog ==
+0.9.3 Added `user_specific_content_blocked` filter to allow insertion of login form or whatever else you want.
+
+0.9.2 cleaned up code comments
+
 0.9.1 Fixed Typo (thanks to Sean Nittner) added backwards compatible and GNU.
 
 0.9 Added nested shortcode option.
