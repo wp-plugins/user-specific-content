@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.9.5
+Version: 0.9.6
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -302,14 +302,14 @@ class bainternet_U_S_C {
 		if (isset($savedoptions['logged']) && $savedoptions['logged'] == 1){
 			echo ' checked'; 
 		}
-		echo '>'.__('If this box is check then content will show only to logged-in users and everyone else will get the blocked massage','bauspc');
+		echo '>'.__('If this box is checked then content will show only to logged-in users and everyone else will get the blocked message','bauspc');
 		//none logged-in
 		echo '<h4>'.__('None logged in users only:','bauspc').'</h4>';
 		echo '<input type="checkbox" name="U_S_C_options[non_logged]" value="1"';
 		if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
 			echo ' checked'; 
 		}
-		echo '>'.__('If this box is check then content will show only to none logged-in visitors and everyone else will get the blocked massage','bauspc');
+		echo '>'.__('If this box is checked then content will show only to non-logged in visitors and everyone else will get the blocked message','bauspc');
 		echo '<h4>'.__('Content Blocked message:','bauspc').'</h4>';
 		echo '<textarea rows="3" cols="70" name="U_S_C_message" id="U_S_C_message">'.get_post_meta($post->ID, 'U_S_C_message',true).'</textarea><br/>'.__('This message will be shown to anyone who is not on the list above.');
 	} 
