@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.9.4
+Version: 0.9.6
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -302,14 +302,14 @@ class bainternet_U_S_C {
 		if (isset($savedoptions['logged']) && $savedoptions['logged'] == 1){
 			echo ' checked'; 
 		}
-		echo '>'.__('If this box is check then content will show only to logged-in users and everyone else will get the blocked massage','bauspc');
+		echo '>'.__('If this box is checked then content will show only to logged-in users and everyone else will get the blocked message','bauspc');
 		//none logged-in
 		echo '<h4>'.__('None logged in users only:','bauspc').'</h4>';
 		echo '<input type="checkbox" name="U_S_C_options[non_logged]" value="1"';
 		if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
 			echo ' checked'; 
 		}
-		echo '>'.__('If this box is check then content will show only to none logged-in visitors and everyone else will get the blocked massage','bauspc');
+		echo '>'.__('If this box is checked then content will show only to non-logged in visitors and everyone else will get the blocked message','bauspc');
 		echo '<h4>'.__('Content Blocked message:','bauspc').'</h4>';
 		echo '<textarea rows="3" cols="70" name="U_S_C_message" id="U_S_C_message">'.get_post_meta($post->ID, 'U_S_C_message',true).'</textarea><br/>'.__('This message will be shown to anyone who is not on the list above.');
 	} 
@@ -371,19 +371,18 @@ class bainternet_U_S_C {
 	public function User_specific_content_filter($content){
 		global $post,$current_user;
 		$savedoptions = get_post_meta($post->ID, 'U_S_C_options',true);
+		$m = get_post_meta($post->ID, 'U_S_C_message',true);
 		if (isset($savedoptions) && !empty($savedoptions)){
 			// none logged only
 			if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
 				if (is_user_logged_in()){
-					return apply_filters('user_specific_content_blocked',get_post_meta($post->ID, 'U_S_C_message',true),$post);
-					exit;
+					return $this->displayMessage($m);
 				}
 			}
 			//logged in users only
 			if (isset($savedoptions['logged']) && $savedoptions['logged'] == 1){
 				if (!is_user_logged_in()){
-					return get_post_meta($post->ID, 'U_S_C_message',true);
-					exit;
+					return $this->displayMessage($m);
 				}
 			}
 		}
@@ -415,15 +414,14 @@ class bainternet_U_S_C {
 			get_currentuserinfo();
 			if (in_array($current_user->ID,$savedusers)){
 				return $content;
-			}
-			else{
+			}else{
 				$run_check = $run_check + 1;
 			}
-				//failed both checks
-			return apply_filters('user_specific_content_blocked',get_post_meta($post->ID, 'U_S_C_message',true),$post);
+			//failed both checks
+			return $this->displayMessage($m);
 		}
 		if ($run_check > 0){
-			return apply_filters('user_specific_content_blocked',get_post_meta($post->ID, 'U_S_C_message',true),$post);
+			return $this->displayMessage($m);
 		}
 		return $content;
 	}
@@ -474,48 +472,42 @@ class bainternet_U_S_C {
 		
 			//check logged in
 			if (!is_user_logged_in()){
-				if (isset($blocked_message) && $blocked_message != ''){
-					return apply_filters('user_specific_content_blocked',$blocked_message,$post);
-				}else{
-					return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
-				}
+				return $this->displayMessage($blocked_message);
 			}
 			//check user id
 			if (isset($user_id) && $user_id != '' ){
 				$user_id = explode(",", $user_id);
 				if (!in_array($current_user->ID,$user_id)){
-					if (isset($blocked_message) && $blocked_message != ''){
-						return apply_filters('user_specific_content_blocked',$blocked_message,$post);
-					}else{
-						return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
-					}
+					return $this->displayMessage($blocked_message);
 				}		
 			}
 			//check user name
 			if (isset($user_name) && $user_name != '' ){
 				$user_name = explode(",", $user_name);
 				if (!in_array($current_user->user_login,$user_name)){
-					if (isset($blocked_message) && $blocked_message != ''){
-						return apply_filters('user_specific_content_blocked',$blocked_message,$post);
-					}else{
-						return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
-					}
+					return $this->displayMessage($blocked_message);
 				}
 			}
 			//check user role
 			if (isset($user_role) && $user_role != '' ){
 				$user_role = explode(",", $user_role);
 				if (!in_array($this->bausp_get_current_user_role(),$user_role)){
-					if (isset($blocked_message) && $blocked_message != ''){
-						return apply_filters('user_specific_content_blocked',$blocked_message,$post);
-					}else{
-						return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
-					}
+					return $this->displayMessage($blocked_message);
 				}
 			}
 		}
 		return apply_filters('user_spcefic_content_shortcode_filter',do_shortcode($content));
 	}//end function
+
+	public function displayMessage($m){
+		global $post;
+		if (isset($m) && $m != ''){
+			return apply_filters('user_specific_content_blocked',$m,$post);
+		}else{
+			$options = $this->U_S_C_get_option('U_S_C');
+			return apply_filters('user_specific_content_blocked',$options['b_massage'],$post);
+		}
+	}
 }//end class
 
 $U_S_C_i = new bainternet_U_S_C();
