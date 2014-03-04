@@ -89,7 +89,7 @@ class bainternet_U_S_C {
     public function admin_hooks(){
     	//add admin panel
 		if (!class_exists('SimplePanel'))
-			require_once(plugin_dir_path(__FILE__).'panel/Simple_Panel_Class.php');
+			require_once(plugin_dir_path(__FILE__).'panel/Simple_Panel_class.php');
 
 		require_once(plugin_dir_path(__FILE__).'panel/User_specific_content_panel.php');
 
