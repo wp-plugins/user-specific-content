@@ -3,8 +3,8 @@ Contributors: bainternet,adsbycb
 Donate link:http://en.bainternet.info/donations
 Tags: User content, user specific content,content by role, content by user
 Requires at least: 2.9.2
-Tested up to: 3.5.1
-Stable tag: 0.9.7
+Tested up to: 3.8.1
+Stable tag: 1.0.1
 
 This Plugin allows you to select specific users by user name, or by role name who can view a specific post content or page content.
 
@@ -18,13 +18,16 @@ Basically it adds a meta box to the post or page edit screen and lets the user s
 
 *   You can select any number of Users you want by there names.
 *   You can select any number of users Roles you want by there names.
-*   Easy Customization of content blocked massage per post, or page.
-*   Works with both posts, and pages.
+*   Easy Customization of content blocked massage per post, page or custom type.
+*   Works with both posts,pages and custom types.
 *   Content to none logged in users only.
-*   Setup global default blocked message. (NEW)
-*   plugin blocks when using `the_content` filter and/or `the_excerpt` on admin selection.(NEW)
-*	Simple admin Panel. (NEW)
-*	Block Multiple contents on a single post/page for multiple users Using ShortCode. (NEW)
+*   Setup global default blocked message. 
+*   plugin blocks when using `the_content` filter and/or `the_excerpt` on admin selection.
+*	Simple admin Panel. 
+*	Block Multiple contents on a single post/page for multiple users Using ShortCode.
+*	New admin panel.
+*	Change metabox settings (new)
+*	in option panel help tabs.
 
 
 
@@ -90,6 +93,17 @@ YES you can just add your blocked message as a shortcode parameter eg:
 2. User Specific Content settings panel
 
 == Changelog ==
+1.0.1 quick typo fix.
+
+1.0.0 Major updates:
+* New option panel is now under the users menu.
+* Change checkboxes to a select box.
+* set who can see the metabox based on capabilities.
+* new option to enable\disable the metabox for each post type.
+* clean panel code.
+* clean metabox code.
+* new plugin structure.
+
 0.9.7 Added action filter to allow BuddyPress integration.
 
 0.9.6 Fixed Typo in metabox description.
