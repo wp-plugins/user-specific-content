@@ -3,12 +3,12 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 0.9.7
+Version: 1.0.0
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
 /*
-		* 	Copyright (C) 2011  Ohad Raz
+		* 	Copyright (C) 2014  Ohad Raz
 		*	http://en.bainternet.info
 		*	admin@bainternet.info
 
@@ -41,39 +41,78 @@ class bainternet_U_S_C {
 	 */
 	var $localization_domain = "bauspc";
 	
-	
+	public $options = false;
 	/**
-	 * Class constarctor
+	 * Class constructor
 	 */
     function __construct() {
-		/* Define the custom box */
-		add_action('add_meta_boxes', array($this,'User_specific_content_box'));
+		//Language Setup
+		$locale = get_locale();
+		load_plugin_textdomain( $this->localization_domain, false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
+		$this->hooks();
+    }
+
+    /**
+     * hooks 
+     * function used to add action and filter hooks
+     * Used with `admin_hooks`, `client_hooks`, `and common_hooks`
+     * @return void
+     */
+    public function hooks(){
+    	if (is_admin()){
+    		$this->admin_hooks();
+    	}else{
+    		$this->client_hooks();
+    	}
+    	$this->common_hooks();
+    }
+
+    /**
+     * common_hooks
+     * hooks for both admin and client sides
+     * @return void
+     */
+    public function common_hooks(){
+    	/* add_filter hooks */
+		add_action('init',  array($this, 'U_S_C_init'));
 		/* Save Meta Box */
 		add_action('save_post', array($this,'User_specific_content_box_inner_save'));
 		/* add shortcodes */
 		add_shortcode('O_U',array($this,'User_specific_content_shortcode'));
-		/* options page */
-		add_action('admin_menu', array($this,'admin_menu'));
-        add_action('admin_init',  array($this, 'U_S_C_admin_init'));
-		/* add_filter hooks */
-		add_action('init',  array($this, 'U_S_C_init'));
-		
-		//Language Setup
-		$locale = get_locale();
-		load_plugin_textdomain( $this->localization_domain, false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
-		
     }
-	
+
+    /**
+     * admin_hooks
+     * Admin side hooks should go here
+     * @return void
+     */
+    public function admin_hooks(){
+    	//add admin panel
+		if (!class_exists('SimplePanel'))
+			require_once(plugin_dir_path(__FILE__).'panel/Simple_Panel_Class.php');
+
+		require_once(plugin_dir_path(__FILE__).'panel/User_specific_content_panel.php');
+
+		/* Define the custom box */
+		add_action('add_meta_boxes', array($this,'User_specific_content_box'));
+    }
+
+    /**
+     * client_hooks
+     * client side hooks should go here
+     * @return void
+     */
+    public function client_hooks(){}
+
 	//init
 	public function U_S_C_init(){
 		$options = $this->U_S_C_get_option();
+
 		if ($options['run_on_the_content']){
 			/* hook the_content to filter users */
-			
 			add_filter('the_content',array($this,'User_specific_content_filter'));
 		}
 		if ($options['run_on_the_excerpt']){
-		
 			/* hook the_excerpt to filter users */
 			add_filter('the_excerpt',array($this,'User_specific_content_filter'));
 		}
@@ -81,156 +120,64 @@ class bainternet_U_S_C {
 		do_action('User_specific_content_filter_add',$this);
 	}
 	
-	
-	//admin init
-	public function U_S_C_admin_init(){
-		register_setting( 'U_S_C_Options', 'U_S_C',array($this,'U_S_C_validate_options'));
-		$this->U_S_C_get_option();
-	}
-	
-	function U_S_C_validate_options($i){
-		return $i;
-	}
-	
-	
-	//admin menu
-	public function admin_menu() {
-		add_options_page('User Specific Content', 'User Specific Content', 'manage_options', 'ba_U_S_C', array($this,'U_S_C_options'));
-	}
-	
-	//options page
-	public function U_S_C_options(){
-		
-		if (!current_user_can('manage_options'))  {
-			wp_die( __('You do not have sufficient permissions to access this page.') );
-		}
-		//print_r($_POST);
-		?>
-		<div class="wrap">
-			<div id="icon-options-general" class="icon32">
-			<?php if (isset($_POST['Update_data'])){echo 'good'; }?>
-			</div><h2><a href="http://en.bainternet.info">Bainternet</a> <?php echo __(' User Specific Content','bauspc'); ?></h2>
-			<h3><?php echo __('General settings:','bauspc'); ?></h3>
-			<form method="post" action="options.php">
-			<?php settings_fields('U_S_C_Options');
-				$options = $this->U_S_C_get_option();
-			?>
-			<?php  //print_r($options); ?>
 
-			<table class="form-table">
-
-			<tr valign="top">
-			<th scope="row"><?php echo __('Global Blocked message:','bauspc'); ?></th>
-			<td><textarea type="text" name="U_S_C[b_massage]" ><?php echo $options['b_massage']; ?></textarea><br /> 
-			<?php _e('<small>(if set in a metabox the it overwrites this message for that secific post/page)</small>','bauspc'); ?></td>
-			</tr>
-			
-
-			<tr valign="top">
-			<th scope="row"><?php echo __('Use with "the_content" hook?','bauspc'); ?></th>
-			<td><input type="checkbox" name="U_S_C[run_on_the_content]" value="true" <?php echo ($options['run_on_the_content']) ? 'checked="checked"': ''; ?>" /><br /> 
-			<?php _e('<small>(default checked)</small>','bauspc'); ?></td>
-			</tr>
-			
-			<tr valign="top">
-			<th scope="row"><?php echo __('Use with "the_excerpt" hook?','bauspc'); ?></th>
-			<td><input type="checkbox" name="U_S_C[run_on_the_excerpt]" value="true" <?php echo ($options['run_on_the_excerpt']) ? 'checked="checked"': ''; ?>" /><br /> 
-			<?php _e('<small>(check to make plugin run on archive / tags / category pages default unchecked)</small>','bauspc'); ?></td>
-			</tr>
-			</table>
-			<h3><?php echo __('MetaBox settings:','bauspc'); ?></h3>
-			<table class="form-table">
-			<tr valign="top">
-			<th scope="row"><?php echo __('list user names? ','bauspc'); ?></th>
-			<td><input type="checkbox" name="U_S_C[list_users]" value="true" <?php echo ($options['list_users']) ? 'checked="checked"': ''; ?>" /><br /> 
-			<?php _e('<small>(default checked) sites with a large number of users should uncheck this option</small>','bauspc'); ?></td>
-			</tr>
-			<tr valign="top">
-			<th scope="row"><?php echo __('list user roles?','bauspc'); ?></th>
-			<td><input type="checkbox" name="U_S_C[list_roles]" value="true" <?php echo ($options['list_roles']) ? 'checked="checked"': ''; ?>" /><br /> 
-			<?php _e('<small>(default checked) sites with a large number of roles should uncheck this option</small>','bauspc'); ?></td>
-			</tr>
-
-			</table>
-			<div>
-				<?php $this->credits(); ?>
-				<?php echo '<h3>New Feature</h3><p>Since version 0.7 you can use a shortcode <pre>[U_O]</pre> which accepts the following parameters: </p><ul>';
-			echo '<li>user_id - specific user ids form more then one separate by comma</li>
-			<li>user_name - specific user names form more then one separate by comma</li>
-			<li>user_role - specific user role form more then one separate by comma</li>
-			<li>blocked_message - specific Content Blocked message</li></ul><p>eg:</p><pre>[O_U user_role="Administrator" blocked_message="admins only!"]admin content goes here[/O_U]</pre>';
-			?>
-			</div>
-			<p class="submit">
-			<input type="submit" class="button-primary" value="<?php _e('Save Changes','bauspc'); ?>" />
-			</p>
-			</form>
-		</div>
-		<?php
-	}
 	
 	//options
 	public function U_S_C_get_option(){
+		if ($this->options) return $this->options;
+
 		$temp = array(
-		'b_massage' => '',
-		'list_users' => true,
-		'list_roles' => true,
-		'run_on_the_content' => true,
-		'run_on_the_excerpt' => false
+			'b_massage'           => '',
+			'list_users'          => true,
+			'list_roles'          => true,
+			'run_on_the_content'  => true,
+			'run_on_the_excerpt'  => false,
+			'posttypes'           =>  array('post' => true, 'page' => true ),
+			'capability'          => 'manage_options',
+			'user_role_list_type' => 'checkbox',
+			'user_list_type'      => 'checkbox',
 		);
 		
 		$i = get_option('U_S_C');
 		if (!empty($i)){
-			if (isset($i['run_on_the_content']) && $i['run_on_the_content']){
-				$temp['run_on_the_content'] = true;
-			}else{
-				$temp['run_on_the_content'] = false;
-			}
+			//checkboxes
+			$checkboxes = array(
+				'run_on_the_content',
+				'run_on_the_excerpt',
+				'list_users',
+				'list_roles',
+			);
 			
-			if (isset($i['run_on_the_excerpt']) && $i['run_on_the_excerpt']){
-				$temp['run_on_the_excerpt'] = true;
-			}else{
-				$temp['run_on_the_excerpt'] = false;
+			//all others
+			foreach ($i as $c => $value) {
+				if (in_array($c, $checkboxes)){
+					if (isset($i[$c]) && $i[$c]){
+						$temp[$c] = true;
+					}else{
+						$temp[$c] = false;
+					}
+				}else{
+					$temp[$c] = $value;
+				}
 			}
-			
-			if (isset($i['list_users']) && $i['list_users']){
-				$temp['list_users'] = true;
-			}else{
-				$temp['list_users'] = false;
-			}
-			
-			if (isset($i['list_roles']) && $i['list_roles']){
-				$temp['list_roles'] = true;
-			}else{
-				$temp['list_roles'] = false;
-			}
-			
-			if (isset($i['b_massage'])){
-				$temp['b_massage'] = $i['b_massage'];
-			}
+
 		}
 		
 		update_option('U_S_C', $temp);
+		$this->options = $temp;
 		//delete_option('U_S_C');
 		return $temp;
 	}
 	
 	/* Adds a box to the main column on the custom post type edit screens */
-	public function User_specific_content_box() {
-		add_meta_box('User_specific_content', __( 'User specific content box'),array($this,'User_specific_content_box_inner'),'post');
-		add_meta_box('User_specific_content', __( 'User specific content box'),array($this,'User_specific_content_box_inner'),'page');
-		//add metabox to custom post types
-		$args=array(
-			'public'   => true,
-			'_builtin' => false
-		); 
-		//add metabox to custom post types edit screen
-		$output = 'names'; // names or objects, note names is the default
-		$operator = 'and'; // 'and' or 'or'
-		$post_types=get_post_types($args,$output,$operator); 
-		foreach ($post_types  as $post_type ) {
-			add_meta_box('User_specific_content', __( 'User specific content box','bauspc'),array($this,'User_specific_content_box_inner'),$post_type);
-		}
+	public function User_specific_content_box($post_type) {
+		$options = $this->U_S_C_get_option();
+		if ( !current_user_can($options['capability']) ) 
+			return;
+
+		$allowed_types = array_keys($options['posttypes']);
+		if (in_array($post_type, $allowed_types) )
+			add_meta_box('User_specific_content', __( 'User specific content box'),array($this,'User_specific_content_box_inner'),$post_type);
 	}
 
 	/* Prints the box content */
@@ -249,71 +196,79 @@ class bainternet_U_S_C {
 		//by role
 		echo __('Select users to show this content to','bauspc');
 		if ($options['list_roles']){
-			echo '<h4>'.__('By User Role:','bauspc').'</h4>';
+			echo '<h4>'.__('By User Role:','bauspc').'</h4><p>';
 			if ( !isset( $wp_roles ) )
 				$wp_roles = new WP_Roles();
-			if (!empty($savedroles)){
+			if (empty($savedroles)) 
+				$savedroles = array();
+			if ('checkbox' == $options['user_role_list_type']){
 				foreach ( $wp_roles->role_names as $role => $name ) {
-					echo '<input type="checkbox" name="U_S_C_roles[]" value="'.$name.'"';
-					if (in_array($name,$savedroles)){
-						echo ' checked';
-					}
-					echo '>'.$name.'    ';
+					echo '<label>
+					<input type="checkbox" name="U_S_C_roles[]" value="'.$name.'"';
+					if (in_array($name,$savedroles)){ echo ' checked';}
+					echo '>'.$name.'</label>    ';
 				}
 			}else{
+				echo '<select name="U_S_C_roles[]" multiple="multiple">';
 				foreach ( $wp_roles->role_names as $role => $name ) {
-					echo '<input type="checkbox" name="U_S_C_roles[]" value="'.$name.'">'.$name.'    ';
+					echo '<option ';
+					if (in_array($name,$savedroles)){ echo ' selected="selected" ';}
+					echo 'value="'.$name.'">'.$name.'</option>';
 				}
+				echo '</select>';
 			}
 		}
+		echo '</p>';
 		
 		//by user
 		if ($options['list_users']){
-			echo '<h4>'.__('By User Name:','bauspc').'</h4>';
+			echo '<h4>'.__('By User Name:','bauspc').'</h4><p>';
 			$blogusers = get_users('blog_id=1&orderby=nicename');
-			$usercount = 0;
-			if (!empty($savedusers)){
+			if (empty($savedusers)) 
+				$savedusers = array();
+			if ('checkbox' == $options['user_list_type']){
 				foreach ($blogusers as $user) {
-					echo '<input type="checkbox" name="U_S_C_users[]" value="'.$user->ID.'"';
+					echo '<label><input type="checkbox" name="U_S_C_users[]" value="'.$user->ID.'"';
 					if (in_array($user->ID,$savedusers)){
 						echo ' checked';
 					}
-					echo '>'.$user->display_name.'    ';
-					$usercount = $usercount + 1;
-					if ($usercount > 5){
-						echo '<br/>';
-						$usercount = 0;
-					}
+					echo '>'.$user->display_name.'</label>    ';
 				}
 			}else{
+				echo '<select name="U_S_C_users[]" multiple="multiple">';
 				foreach ($blogusers as $user) {
-					echo '<input type="checkbox" name="U_S_C_users[]" value="'.$user->ID.'">'.$user->display_name.'    ';
-					$usercount = $usercount + 1;
-					if ($usercount > 5){
-						echo '<br/>';
-						$usercount = 0;
-					}
+					echo '<option ';
+					if (in_array($name,$savedroles)){ echo ' selected="selected" ';}
+					echo 'value="'.$user->ID.'">'.$user->display_name.'</option>';
 				}
+				echo '</select>';
 			}
+			echo '</p>';
 		}
 		
 		//other_options
+		echo '<h4>'.__('Members and Guests','bauspc').'</h4>';
 		//logeed-in only
-		echo '<h4>'.__('logged in users only:','bauspc').'</h4>';
-		echo '<input type="checkbox" name="U_S_C_options[logged]" value="1"';
+		echo '<p><label>
+		<input type="checkbox" name="U_S_C_options[logged]" value="1"';
 		if (isset($savedoptions['logged']) && $savedoptions['logged'] == 1){
 			echo ' checked'; 
 		}
-		echo '>'.__('If this box is checked then content will show only to logged-in users and everyone else will get the blocked message','bauspc');
+		echo '>'.__('logged in users only','bauspc').'</label><br/><span class="description">'
+		.__('If this box is checked then content will show only to logged-in users and everyone else will get the blocked message','bauspc');
+		echo '</span></p>';
+		
 		//none logged-in
-		echo '<h4>'.__('None logged in users only:','bauspc').'</h4>';
-		echo '<input type="checkbox" name="U_S_C_options[non_logged]" value="1"';
+		echo '<hp><label>
+		<input type="checkbox" name="U_S_C_options[non_logged]" value="1"';
 		if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
 			echo ' checked'; 
 		}
-		echo '>'.__('If this box is checked then content will show only to non-logged in visitors and everyone else will get the blocked message','bauspc');
-		echo '<h4>'.__('Content Blocked message:','bauspc').'</h4>';
-		echo '<textarea rows="3" cols="70" name="U_S_C_message" id="U_S_C_message">'.get_post_meta($post->ID, 'U_S_C_message',true).'</textarea><br/>'.__('This message will be shown to anyone who is not on the list above.');
+		echo '>'.__('None logged in users only','bauspc').'</label><br/><span class="description">'.
+		__('If this box is checked then content will show only to non-logged in visitors and everyone else will get the blocked message','bauspc');
+		echo '<h4>'.__('Content Blocked message:','bauspc').'</h4><p>';
+		echo '<textarea rows="3" cols="70" name="U_S_C_message" id="U_S_C_message">'.get_post_meta($post->ID, 'U_S_C_message',true).'</textarea>
+		<br/><span class="description">'.__('This message will be shown to anyone who is not on the list above.').'</span></p>';
 	} 
  
 	/* When the post is saved, saves our custom data */
@@ -374,6 +329,7 @@ class bainternet_U_S_C {
 		global $post,$current_user;
 		$savedoptions = get_post_meta($post->ID, 'U_S_C_options',true);
 		$m = get_post_meta($post->ID, 'U_S_C_message',true);
+
 		if (isset($savedoptions) && !empty($savedoptions)){
 			// none logged only
 			if (isset($savedoptions['non_logged']) && $savedoptions['non_logged'] == 1){
@@ -511,5 +467,8 @@ class bainternet_U_S_C {
 		}
 	}
 }//end class
-
-$U_S_C_i = new bainternet_U_S_C();
+add_action('init','init_uspc_plugin',0);
+function init_uspc_plugin(){
+	global $U_S_C_i;
+	$U_S_C_i = new bainternet_U_S_C();
+}
