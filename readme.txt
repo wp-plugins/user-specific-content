@@ -3,8 +3,8 @@ Contributors: bainternet,adsbycb
 Donate link:http://en.bainternet.info/donations
 Tags: User content, user specific content,content by role, content by user
 Requires at least: 2.9.2
-Tested up to: 3.8.1
-Stable tag: 1.0.1
+Tested up to: 4.0.0
+Stable tag: 1.0.3
 
 This Plugin allows you to select specific users by user name, or by role name who can view a specific post content or page content.
 
@@ -48,7 +48,7 @@ Also check out my <a href=\"http://en.bainternet.info/category/plugins\">other p
 
 Simply use the <a href=\"http://wordpress.org/tags/user-specific-content?forum_id=10\">Support Forum</a> and thanks a head for doing that.
 
-= How can i Use the ShortCode to limit the content to a specific user id? =
+= How can I Use the ShortCode to limit the content to a specific user id? =
 
 Simply use:
 `[O_U user_id="1"]Content goes here[/O_U]`
@@ -58,7 +58,7 @@ or to specify multiple users you can use:
 where 1,2,3 are different user ids.
 
 
-= How can i Use the ShortCode to limit the content to a specific user name? =
+= How can I Use the ShortCode to limit the content to a specific user name? =
 
 Simply use:
 `[O_U user_name="Bainternet"]Content goes here[/O_U]`
@@ -67,7 +67,7 @@ or to specify multiple users you can use:
 `[O_U user_name="Bainternet,Steve,david"]Content goes here[/O_U]`
 where Bainternet,Steve,david are different user names.
 
-= How can i Use the ShortCode to limit the content to a specific user by role? =
+= How can I Use the ShortCode to limit the content to a specific user by role? =
 
 Simply use:
 `[O_U user_role="Administrator"]Content goes here[/O_U]`
@@ -76,23 +76,41 @@ or to specify multiple user roles you can use:
 `[O_U user_name="Administrator,Author,Contributor"]Content goes here[/O_U]`
 where Administrator,Author,Contributor are different user roles.
 
-= Can i use the shortcode more then once in a post? =
+= Can I use the shortcode more then once in a post? =
 
 YES you can use it as many times as you want eg:
 `[O_U user_role="Administrator"]admin content goes here[/O_U]
 [O_U user_name="Bainternet,Steve,david"]specific users content goes here[/O_U]`
 
-= Can i change the blocked massage for a specific shortcode? =
+= Can I change the blocked massage for a specific shortcode? =
 
 YES you can just add your blocked message as a shortcode parameter eg:
 `[O_U user_role="Administrator" blocked_meassage="admins only!"]admin content goes here[/O_U]`
 
+= Can I use the shortcode for logged in or looged out users? =
+Yep just use the `logged_status` parameter ex:
+`[O_U logged_status="in"]You only see this if you are logged in[/O_U]`
+Or
+`[O_U logged_status="out"]You only see this if you are logged out[/O_U]`
 
 == Screenshots ==
 1. User Specific Content metabox
 2. User Specific Content settings panel
 
 == Changelog ==
+1.0.3 Removed some leftover testing code.
+
+1.0.2 Major updates:
+= Pls make sure to save settings in option panel after updating. =
+* Added support for multiple roles per user.
+* Added better support for multisite.
+* Fixed settings panel not saving.
+* Added a "clear selection" to multiple select dropdowns.
+* Added `logged_status` shortcode parameter, See FAQ.
+* added hooks To allow metabox on custom post types in case the settings panel can't pick them up:
+filter hook: `USC_allowed_post_types`
+action hook: `USC_add_meta_box`
+
 1.0.1 quick typo fix.
 
 1.0.0 Major updates:

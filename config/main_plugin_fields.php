@@ -98,7 +98,7 @@ $p->add_field(array(
 global $wp_roles;
 $capabilities = array();
 foreach ($wp_roles->roles as $role => $r) {
-	foreach ($r['capabilities'] as $key => $value) {
+	foreach ((array)$r['capabilities'] as $key => $value) {
 		$capabilities[$key] = $key;
 	}
 }

@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 1.0.1
+Version: 1.0.3
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -175,9 +175,20 @@ class bainternet_U_S_C {
 		if ( !current_user_can($options['capability']) ) 
 			return;
 
-		$allowed_types = array_keys($options['posttypes']);
-		if (in_array($post_type, $allowed_types) )
+		
+		$allowed_types = array();
+		foreach ((array)$options['posttypes'] as $key => $value) {
+			if ($value)
+				$allowed_types[] = $key;
+		}
+		//added a filter to enable controling the allowed post types by filter hook
+		$allowed_types = apply_filters('USC_allowed_post_types',$allowed_types);
+
+		if (in_array($post_type,(array)$allowed_types) )
 			add_meta_box('User_specific_content', __( 'User specific content box'),array($this,'User_specific_content_box_inner'),$post_type);
+
+		//allow custom types by action hook
+		do_action('USC_add_meta_box',$this);
 	}
 
 	/* Prints the box content */
@@ -187,10 +198,9 @@ class bainternet_U_S_C {
 		
 		$options = $this->U_S_C_get_option('U_S_C');
 		$savedroles = get_post_meta($post->ID, 'U_S_C_roles',true);
-		//var_dump($savedroles);
 		$savedusers = get_post_meta($post->ID, 'U_S_C_users',true);
 		$savedoptions = get_post_meta($post->ID, 'U_S_C_options',true);
-		//var_dump($savedusers);
+
 		// Use nonce for verification
 		wp_nonce_field( plugin_basename(__FILE__), 'User_specific_content_box_inner' );
 		//by role
@@ -215,7 +225,7 @@ class bainternet_U_S_C {
 					if (in_array($name,$savedroles)){ echo ' selected="selected" ';}
 					echo 'value="'.$name.'">'.$name.'</option>';
 				}
-				echo '</select>';
+				echo '</select> - <a href="#" class="button clearselection_usc">Clear selection</a>';
 			}
 		}
 		echo '</p>';
@@ -223,7 +233,10 @@ class bainternet_U_S_C {
 		//by user
 		if ($options['list_users']){
 			echo '<h4>'.__('By User Name:','bauspc').'</h4><p>';
-			$blogusers = get_users('blog_id=1&orderby=nicename');
+			$site_id = 1;
+			if (is_multisite())
+				$site_id = get_current_blog_id();
+			$blogusers = get_users('blog_id='.$site_id.'&orderby=nicename');
 			if (empty($savedusers)) 
 				$savedusers = array();
 			if ('checkbox' == $options['user_list_type']){
@@ -238,14 +251,23 @@ class bainternet_U_S_C {
 				echo '<select name="U_S_C_users[]" multiple="multiple">';
 				foreach ($blogusers as $user) {
 					echo '<option ';
-					if (in_array($name,$savedroles)){ echo ' selected="selected" ';}
+					if (in_array($user->ID,(array)$savedusers)){ echo ' selected="selected" ';}
 					echo 'value="'.$user->ID.'">'.$user->display_name.'</option>';
 				}
-				echo '</select>';
+				echo '</select> - <a href="#" class="button clearselection_usc">Clear selection</a>';
 			}
 			echo '</p>';
 		}
-		
+		?>
+		<script type="text/javascript">
+		jQuery(document).ready(function($){
+			$('.clearselection_usc').click(function(e){
+				e.preventDefault();
+				$(this).prev().val([]);
+			});
+		});
+		</script>
+		<?php
 		//other_options
 		echo '<h4>'.__('Members and Guests','bauspc').'</h4>';
 		//logeed-in only
@@ -344,8 +366,10 @@ class bainternet_U_S_C {
 				}
 			}
 		}
-		$savedroles = get_post_meta($post->ID, 'U_S_C_roles',true);
 		$run_check = 0;
+		//get saved roles
+		$savedroles = get_post_meta($post->ID, 'U_S_C_roles',true);
+		//get saved users
 		$savedusers = get_post_meta($post->ID, 'U_S_C_users',true);
 		if (!count($savedusers) > 0 && !count($savedroles) > 0 ){
 			return $content;
@@ -354,19 +378,16 @@ class bainternet_U_S_C {
 		//by role
 		if (isset($savedroles) && !empty($savedroles)){
 			get_currentuserinfo();
-			$cu_r = $this->bausp_get_current_user_role();
-			if ($cu_r){
-				if (in_array($cu_r,$savedroles)){
+			foreach ((array)$savedroles as $role) {
+				if ($this->has_role(strtolower($role))){
 					return $content;
 					exit;
-				}else{
-					$run_check = 1;
 				}
-			}else{
-				//failed role check
-				$run_check = 1;
 			}
+			//failed role check
+			$run_check = 1;
 		}
+
 		//by user
 		if (isset($savedusers) && !empty($savedusers)){
 			get_currentuserinfo();
@@ -387,13 +408,24 @@ class bainternet_U_S_C {
 	/************************
 	* helpers
 	************************/
+	/**
+	 * Deprecated 1.0.2
+	 */
+	public function bausp_get_current_user_role() {}
 
-	public function bausp_get_current_user_role() {
-		global $wp_roles;
-		$current_user = wp_get_current_user();
-		$roles = $current_user->roles;
-		$role = array_shift($roles);
-		return isset($wp_roles->role_names[$role]) ? translate_user_role($wp_roles->role_names[$role] ) : false;
+	/**
+	 * @since 1.0.2
+	 */
+	public function has_role($role, $user_id = null){
+		if ( is_numeric( $user_id ) )
+			$user = get_userdata( $user_id );
+		else
+			$user = wp_get_current_user();
+
+		if ( empty( $user ) )
+			return false;
+
+		return in_array( $role, (array) $user->roles );
 	}
 	
 	public function credits(){
@@ -414,6 +446,7 @@ class bainternet_U_S_C {
 	        "user_id" => '',
 			"user_name" => '',
 			"user_role" => '',
+			'logged_status' => '',
 			"blocked_message" => '',
 			"blocked_meassage" => null
 	    ), $atts));
@@ -449,9 +482,19 @@ class bainternet_U_S_C {
 			//check user role
 			if (isset($user_role) && $user_role != '' ){
 				$user_role = explode(",", $user_role);
-				if (!in_array($this->bausp_get_current_user_role(),$user_role)){
+				if (!$this->has_role($user_role)){
 					return $this->displayMessage($blocked_message);
 				}
+			}
+		}
+		if ($logged_status = 'in'){
+			if (!is_user_logged_in()){
+				return $this->displayMessage($blocked_message);
+			}
+		}
+		if ($logged_status = 'out'){
+			if (is_user_logged_in()){
+				return $this->displayMessage($blocked_message);
 			}
 		}
 		return apply_filters('user_spcefic_content_shortcode_filter',do_shortcode($content));
