@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 1.0.3
+Version: 1.0.4
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -107,14 +107,13 @@ class bainternet_U_S_C {
 	//init
 	public function U_S_C_init(){
 		$options = $this->U_S_C_get_option();
-
 		if ($options['run_on_the_content']){
 			/* hook the_content to filter users */
-			add_filter('the_content',array($this,'User_specific_content_filter'));
+			add_filter('the_content',array($this,'User_specific_content_filter'),20);
 		}
 		if ($options['run_on_the_excerpt']){
 			/* hook the_excerpt to filter users */
-			add_filter('the_excerpt',array($this,'User_specific_content_filter'));
+			add_filter('the_excerpt',array($this,'User_specific_content_filter'),20);
 		}
 		//allow other filters
 		do_action('User_specific_content_filter_add',$this);
@@ -373,7 +372,6 @@ class bainternet_U_S_C {
 		$savedusers = get_post_meta($post->ID, 'U_S_C_users',true);
 		if (!count($savedusers) > 0 && !count($savedroles) > 0 ){
 			return $content;
-			exit;
 		}
 		//by role
 		if (isset($savedroles) && !empty($savedroles)){
@@ -381,7 +379,6 @@ class bainternet_U_S_C {
 			foreach ((array)$savedroles as $role) {
 				if ($this->has_role(strtolower($role))){
 					return $content;
-					exit;
 				}
 			}
 			//failed role check
@@ -402,6 +399,7 @@ class bainternet_U_S_C {
 		if ($run_check > 0){
 			return $this->displayMessage($m);
 		}
+
 		return $content;
 	}
 
@@ -409,7 +407,7 @@ class bainternet_U_S_C {
 	* helpers
 	************************/
 	/**
-	 * Deprecated 1.0.2
+	 * @Deprecated 1.0.2
 	 */
 	public function bausp_get_current_user_role() {}
 
@@ -441,16 +439,19 @@ class bainternet_U_S_C {
 	*	shortcodes
 	************************/
 
-	public function User_specific_content_shortcode($atts, $content = null){
-		extract(shortcode_atts(array(
-	        "user_id" => '',
-			"user_name" => '',
-			"user_role" => '',
-			'logged_status' => '',
-			"blocked_message" => '',
-			"blocked_meassage" => null
-	    ), $atts));
+	public function User_specific_content_shortcode($atts, $content = null,$tag = ''){
+		$atts = shortcode_atts(array(
+			'user_id'          => '',
+			'user_name'        => '',
+			'user_role'        => '',
+			'logged_status'    => '',
+			'blocked_message'  => false,
+			'blocked_meassage' => null
+	    ), $atts);
 		
+		extract($atts);
+		
+
 		global $post;
 		if ($blocked_meassage !== null){
 			$blocked_message = $blocked_meassage;
@@ -459,12 +460,13 @@ class bainternet_U_S_C {
 		$options = $this->U_S_C_get_option('U_S_C');
 		global $current_user;
         get_currentuserinfo();
-		if ($user_id != '' || $user_name != '' || $user_role != ''){
-		
+
+		if ( (isset($user_id) && $user_id != '' ) || (isset($user_name) && $user_name != '') || (isset($user_role) && $user_role != '') ){
 			//check logged in
 			if (!is_user_logged_in()){
 				return $this->displayMessage($blocked_message);
 			}
+
 			//check user id
 			if (isset($user_id) && $user_id != '' ){
 				$user_id = explode(",", $user_id);
@@ -472,6 +474,7 @@ class bainternet_U_S_C {
 					return $this->displayMessage($blocked_message);
 				}		
 			}
+
 			//check user name
 			if (isset($user_name) && $user_name != '' ){
 				$user_name = explode(",", $user_name);
@@ -479,6 +482,7 @@ class bainternet_U_S_C {
 					return $this->displayMessage($blocked_message);
 				}
 			}
+
 			//check user role
 			if (isset($user_role) && $user_role != '' ){
 				$user_role = explode(",", $user_role);
@@ -487,16 +491,20 @@ class bainternet_U_S_C {
 				}
 			}
 		}
-		if ($logged_status = 'in'){
+
+		//logged in
+		if ($logged_status == 'in'){
 			if (!is_user_logged_in()){
 				return $this->displayMessage($blocked_message);
 			}
 		}
-		if ($logged_status = 'out'){
+		//logged out
+		if ($logged_status == 'out'){
 			if (is_user_logged_in()){
 				return $this->displayMessage($blocked_message);
 			}
 		}
+
 		return apply_filters('user_spcefic_content_shortcode_filter',do_shortcode($content));
 	}//end function
 
