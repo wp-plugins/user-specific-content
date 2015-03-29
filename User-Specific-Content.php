@@ -3,7 +3,7 @@
 Plugin Name: User Specific Content
 Plugin URI: http://en.bainternet.info
 Description: This Plugin allows you to select specific users by user name, or by role name who can view a  specific post content or page content.
-Version: 1.0.4
+Version: 1.0.5
 Author: Bainternet
 Author URI: http://en.bainternet.info
 */
@@ -423,7 +423,16 @@ class bainternet_U_S_C {
 		if ( empty( $user ) )
 			return false;
 
-		return in_array( $role, (array) $user->roles );
+		if (is_array($role)){
+			foreach ($role as $r) {
+				if (in_array($r,(array)$user->roles))
+					return true;
+			}
+		}else{
+			if (in_array( $role, (array)$user->roles ))
+				return true;
+		}
+		return false;
 	}
 	
 	public function credits(){
