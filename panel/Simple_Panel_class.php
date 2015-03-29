@@ -328,9 +328,27 @@ if (!class_exists('SimplePanel')){
 		    //$options = get_option($this->option);
 
 		    //update only the neede options
+		    $keys = array();
 		    foreach ($input as $key => $value){
 		        $options[$key] = $value;
+		        $keys[] = $key;
 		    }
+
+
+		    //fix for checkboxes
+		    foreach ((array)$this->fields as $f) {
+		    	$name = rtrim(str_replace($this->option .'[','',$f['name']),']');
+		    	if (!in_array($name, $keys) && 'checkbox' == $f['type']){
+		    		if (false === strpos($name,'posttypes][')){
+		    			$options[$name] = false;
+		    		}else{
+		    			$ptype = str_replace("posttypes][",'',$name);
+		    			if (! isset($options['posttypes'][$ptype]))
+		    				$options['posttypes'][$ptype] = false;
+		    		}
+		    	}
+		    }
+
 		    //return all options
 		    return $options;
 		}
@@ -368,8 +386,14 @@ if (!class_exists('SimplePanel')){
 		 */
 		public function get_value($key = '',$def = ''){
 			$options = get_option($this->option);
-			if (isset($options[$key]))
-				return $options[$key];
+			if (strpos($key,'][') === false){
+				if (isset($options[$key]))
+					return $options[$key];
+			}else{
+				$keys = explode('][',$key);
+				if (isset($options[$keys[0]][$keys[1]]))
+					return $options[$keys[0]][$keys[1]];
+			}
 			return $def;
 		}
 
@@ -506,7 +530,7 @@ if (!class_exists('SimplePanel')){
 			$std     = isset($args['std'])? $args['std'] : false;
 			$name    = esc_attr( $args['name'] );
 			$value   = esc_attr( $this->get_value($args['id'],$std));
-			$checked = ($value!= false)? ' checked="checked" ' : '';
+			$checked = ($value != false)? ' checked="checked" ' : '';
 			echo "<input ".$checked." name='$name' type='checkbox' value='1' />";
 		}
 
