@@ -115,6 +115,10 @@ class bainternet_U_S_C {
 			/* hook the_excerpt to filter users */
 			add_filter('the_excerpt',array($this,'User_specific_content_filter'),20);
 		}
+		if ($options['run_on_the_loop']){
+			/* hook pre_get_posts to filter posts by restrictions */
+			add_action('pre_get_posts', array($this, 'User_specific_loop_filter'));
+		}
 		//allow other filters
 		do_action('User_specific_content_filter_add',$this);
 	}
@@ -402,6 +406,39 @@ class bainternet_U_S_C {
 
 		return $content;
 	}
+	
+	public function User_specific_loop_filter($query){
+
+    if ( is_main_query() && !is_admin() && !is_singular() ) {
+      global $current_user;
+      get_currentuserinfo();
+  
+      $args = array(
+        'relation' => 'OR',
+        array(
+          'key' => 'U_S_C_roles',
+          'compare' => 'NOT EXISTS'
+        )
+      );
+  
+      if ( !empty( $current_user ) ) {
+        $roles = $current_user->roles;
+  
+        foreach ($roles as $r) {
+          $args[] = array(
+            'key' => 'U_S_C_roles',
+            'value' => $r,
+            'compare' => 'LIKE'
+          );
+        }
+  
+      }
+  
+      $query->set('meta_query', $args);
+  
+      return $query;
+    }
+  }
 
 	/************************
 	* helpers
