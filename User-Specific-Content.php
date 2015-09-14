@@ -213,16 +213,16 @@ class bainternet_U_S_C {
 			if ('checkbox' == $options['user_role_list_type']){
 				foreach ( $wp_roles->role_names as $role => $name ) {
 					echo '<label>
-					<input type="checkbox" name="U_S_C_roles[]" value="'.$name.'"';
-					if (in_array($name,$savedroles)){ echo ' checked';}
+					<input type="checkbox" name="U_S_C_roles[]" value="'.$role.'"';
+					if (in_array($role,$savedroles)){ echo ' checked';}
 					echo '>'.$name.'</label>    ';
 				}
 			}else{
 				echo '<select name="U_S_C_roles[]" multiple="multiple">';
 				foreach ( $wp_roles->role_names as $role => $name ) {
 					echo '<option ';
-					if (in_array($name,$savedroles)){ echo ' selected="selected" ';}
-					echo 'value="'.$name.'">'.$name.'</option>';
+					if (in_array($role,$savedroles)){ echo ' selected="selected" ';}
+					echo 'value="'.$role.'">'.$name.'</option>';
 				}
 				echo '</select> - <a href="#" class="button clearselection_usc">Clear selection</a>';
 			}
@@ -377,7 +377,7 @@ class bainternet_U_S_C {
 		if (isset($savedroles) && !empty($savedroles)){
 			get_currentuserinfo();
 			foreach ((array)$savedroles as $role) {
-				if ($this->has_role(strtolower($role))){
+				if ($this->has_role($role)){
 					return $content;
 				}
 			}
