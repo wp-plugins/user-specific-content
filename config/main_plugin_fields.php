@@ -42,6 +42,16 @@ $p->add_field(array(
     )
 );
 
+$p->add_field(array(
+    'label'   => __('Filter posts from The Loop?','bauspc'),
+    'std'     => false,
+    'id'      => 'run_on_the_loop',
+    'type'    => 'checkbox',
+    'section' => $setting,
+    'desc'    => __('(check to stop posts appearing on archive / tags / category pages default unchecked)','bauspc')
+    )
+);
+
 $setting2 = $p->add_section(array(
 	'option_group'      =>  'U_S_C',
 	'sanitize_callback' => null,
